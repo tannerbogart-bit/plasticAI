@@ -77,6 +77,11 @@ export default function Result() {
 
   return (
     <div className={styles.page}>
+      {/* Back button row — safe-area aware */}
+      <div className={styles.backRow}>
+        <button className={styles.backBtn} onClick={() => navigate("/")}>← Scan another</button>
+      </div>
+
       {/* Hero */}
       <div className={styles.hero} style={{ background: verdict.bg }}>
         {product.image_url && (
@@ -84,7 +89,7 @@ export default function Result() {
         )}
         <div className={styles.heroContent}>
           <Gauge pct={pct} color={verdict.color} />
-          <div>
+          <div className={styles.heroText}>
             <p className={styles.verdictLabel} style={{ color: verdict.color }}>
               {verdict.label} plastic content
             </p>
@@ -125,9 +130,8 @@ export default function Result() {
         </button>
       </div>
 
-      {/* Scan again */}
       <button className={styles.scanAgain} onClick={() => navigate("/")}>
-        ← Scan another product
+        Scan another product
       </button>
     </div>
   );

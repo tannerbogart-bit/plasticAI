@@ -3,6 +3,8 @@
   flex-direction: column;
   min-height: 100dvh;
   background: var(--bg);
+  /* Bottom padding for home indicator */
+  padding-bottom: var(--sab);
 }
 
 /* ── Loading / error splash ── */
@@ -14,6 +16,7 @@
   gap: 20px;
   min-height: 100dvh;
   padding: 24px;
+  text-align: center;
 }
 
 .spinner {
@@ -30,6 +33,7 @@
 .splashText {
   color: var(--muted);
   font-size: 1rem;
+  max-width: 260px;
 }
 
 .outlineBtn {
@@ -37,8 +41,27 @@
   border: 1px solid var(--surface2);
   color: var(--muted);
   border-radius: 12px;
-  padding: 10px 24px;
+  padding: 12px 28px;
+  font-size: 0.95rem;
+}
+
+/* ── Back button ── */
+.backRow {
+  display: flex;
+  align-items: center;
+  padding: calc(12px + var(--sat)) 16px 4px;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: var(--muted);
   font-size: 0.9rem;
+  padding: 8px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
 }
 
 /* ── Hero ── */
@@ -46,71 +69,88 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding: 48px 24px 32px;
+  gap: 16px;
+  padding: 24px 20px 28px;
   transition: background 0.4s;
 }
 
 .productImg {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
   border-radius: 12px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.07);
   padding: 8px;
 }
 
+/* Gauge + text side by side on normal screens, stacked on tiny ones */
 .heroContent {
   display: flex;
   align-items: center;
   gap: 20px;
+  width: 100%;
+  max-width: 360px;
+}
+
+@media (max-width: 340px) {
+  .heroContent {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 
 .gaugeSvg {
-  width: 120px;
-  height: 120px;
+  width: 110px;
+  height: 110px;
   flex-shrink: 0;
 }
 
+.heroText {
+  flex: 1;
+  min-width: 0;
+}
+
 .verdictLabel {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
 }
 
 .productName {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  margin-top: 6px;
+  margin-top: 5px;
   line-height: 1.25;
+  /* Prevent very long names breaking layout */
+  overflow-wrap: break-word;
 }
 
 .brand {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--muted);
   margin-top: 3px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-/* ── Sections ── */
+/* ── Content sections ── */
 .section {
-  padding: 20px 24px;
+  padding: 18px 20px;
   border-top: 1px solid var(--surface);
 }
 
 .summary {
   font-size: 0.95rem;
   color: var(--muted);
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .sectionTitle {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   color: var(--muted);
   margin-bottom: 12px;
 }
@@ -119,13 +159,13 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .flagItem {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   padding: 12px 14px;
   background: var(--surface);
   border-radius: 10px;
@@ -139,12 +179,12 @@
 .flagReason {
   font-size: 0.8rem;
   color: var(--muted);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 /* ── Premium upsell ── */
 .upsell {
-  margin: 8px 24px 0;
+  margin: 4px 20px 0;
   padding: 20px;
   background: var(--surface);
   border-radius: 14px;
@@ -161,16 +201,16 @@
 .upsellSub {
   font-size: 0.82rem;
   color: var(--muted);
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .upgradeBtn {
-  margin-top: 4px;
+  margin-top: 6px;
   background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 10px;
-  padding: 13px;
+  padding: 15px;
   font-size: 0.95rem;
   font-weight: 700;
   width: 100%;
@@ -181,11 +221,13 @@
 
 /* ── Scan again ── */
 .scanAgain {
-  margin: 20px auto 40px;
+  margin: 20px auto calc(24px + var(--sab));
   background: none;
   border: none;
   color: var(--muted);
   font-size: 0.875rem;
   text-decoration: underline;
   text-underline-offset: 3px;
+  padding: 8px 16px;
+  display: block;
 }

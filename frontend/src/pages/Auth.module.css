@@ -3,7 +3,8 @@
   flex-direction: column;
   align-items: center;
   min-height: 100dvh;
-  padding: 20px 16px 40px;
+  /* Top padding respects notch; bottom respects home indicator */
+  padding: calc(20px + var(--sat)) 16px calc(40px + var(--sab));
   background: var(--bg);
 }
 
@@ -13,8 +14,11 @@
   border: none;
   color: var(--muted);
   font-size: 0.9rem;
-  padding: 4px 0;
-  margin-bottom: 32px;
+  padding: 8px 4px;
+  margin-bottom: 24px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 
 .card {
@@ -84,10 +88,11 @@
   border: 1px solid var(--surface2);
   border-radius: 10px;
   color: var(--text);
-  font-size: 1rem;
-  padding: 12px 14px;
+  font-size: 16px; /* must be ≥16px — prevents iOS from zooming on focus */
+  padding: 13px 14px;
   outline: none;
   transition: border-color 0.15s;
+  width: 100%;
 }
 
 .input:focus {
@@ -136,6 +141,8 @@
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
+  min-height: 44px;
+  padding: 8px 4px;
 }
 
 /* ── Premium note ── */
