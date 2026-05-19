@@ -11,10 +11,10 @@ class Product(db.Model):
     brand = db.Column(db.String(255))
     ingredients_raw = db.Column(db.Text)
     image_url = db.Column(db.String(512))
-    risk_score = db.Column(db.Float)          # 0.0 (clean) – 10.0 (high risk)
-    risk_summary = db.Column(db.Text)
-    risk_detail = db.Column(db.Text)          # premium field
-    flagged_ingredients = db.Column(db.JSON)  # list of {name, risk, reason}
+    plastic_percentage = db.Column(db.Float)   # 0–100, the hero number shown to users
+    risk_summary = db.Column(db.Text)          # one-sentence plain-English verdict
+    risk_detail = db.Column(db.Text)           # premium: full breakdown
+    flagged_ingredients = db.Column(db.JSON)   # list of {name, percentage, reason}
     cached_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self, premium=False):
@@ -23,8 +23,9 @@ class Product(db.Model):
             "name": self.name,
             "brand": self.brand,
             "image_url": self.image_url,
-            "risk_score": self.risk_score,
+            "plastic_percentage": self.plastic_percentage,
             "risk_summary": self.risk_summary,
+            "flagged_ingredients": (self.flagged_ingredients or [])[:3],  # top 3 free
         }
         if premium:
             data["flagged_ingredients"] = self.flagged_ingredients

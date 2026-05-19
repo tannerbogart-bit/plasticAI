@@ -7,24 +7,25 @@ export default function Scanner() {
   const videoRef = useRef(null);
   const readerRef = useRef(null);
   const navigate = useNavigate();
+  const [status, setStatus] = useState("starting"); // starting | ready | denied
   const [manualBarcode, setManualBarcode] = useState("");
-  const [error, setError] = useState(null);
-  const [scanning, setScanning] = useState(false);
+  const [showManual, setShowManual] = useState(false);
 
   useEffect(() => {
     const reader = new BrowserMultiFormatReader();
     readerRef.current = reader;
 
     reader
-      .decodeFromVideoDevice(null, videoRef.current, (result, err) => {
+      .decodeFromVideoDevice(null, videoRef.current, (result) => {
         if (result) {
           reader.reset();
           navigate(`/result/${result.getText()}`);
         }
       })
-      .then(() => setScanning(true))
-      .catch((e) => {
-        setError("Camera access denied. Use manual entry below.");
+      .then(() => setStatus("ready"))
+      .catch(() => {
+        setStatus("denied");
+        setShowManual(true);
       });
 
     return () => reader.reset();
@@ -38,32 +39,49 @@ export default function Scanner() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.logo}>ClearScan</h1>
-        <p className={styles.tagline}>Find plastics in products</p>
-      </header>
+      <video ref={videoRef} className={styles.video} muted playsInline />
 
-      <div className={styles.viewfinder}>
-        <video ref={videoRef} className={styles.video} muted playsInline />
-        <div className={styles.overlay}>
-          <div className={styles.scanLine} />
-          <span className={styles.hint}>
-            {error ? error : scanning ? "Point at a barcode" : "Starting camera..."}
-          </span>
+      <div className={styles.ui}>
+        <div className={styles.topBar}>
+          <span className={styles.logo}>ClearScan</span>
+        </div>
+
+        <div className={styles.middle}>
+          <div className={styles.frame}>
+            <span className={styles.corner} data-pos="tl" />
+            <span className={styles.corner} data-pos="tr" />
+            <span className={styles.corner} data-pos="bl" />
+            <span className={styles.corner} data-pos="br" />
+            {status === "ready" && <div className={styles.scanLine} />}
+          </div>
+          <p className={styles.hint}>
+            {status === "starting" && "Starting camera…"}
+            {status === "ready" && "Point at any product barcode"}
+            {status === "denied" && "Camera blocked — use manual entry"}
+          </p>
+        </div>
+
+        <div className={styles.bottom}>
+          {!showManual ? (
+            <button className={styles.manualToggle} onClick={() => setShowManual(true)}>
+              Enter barcode manually
+            </button>
+          ) : (
+            <form className={styles.manualForm} onSubmit={handleManual}>
+              <input
+                autoFocus
+                type="text"
+                inputMode="numeric"
+                placeholder="Barcode number…"
+                value={manualBarcode}
+                onChange={(e) => setManualBarcode(e.target.value)}
+                className={styles.input}
+              />
+              <button type="submit" className={styles.goBtn}>Go</button>
+            </form>
+          )}
         </div>
       </div>
-
-      <form className={styles.manual} onSubmit={handleManual}>
-        <input
-          type="text"
-          inputMode="numeric"
-          placeholder="Or enter barcode manually"
-          value={manualBarcode}
-          onChange={(e) => setManualBarcode(e.target.value)}
-          className={styles.input}
-        />
-        <button type="submit" className={styles.btn}>Scan</button>
-      </form>
     </div>
   );
 }

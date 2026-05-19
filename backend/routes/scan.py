@@ -52,24 +52,29 @@ def fetch_from_upc_itemdb(barcode):
 def score_with_claude(product_info):
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-    prompt = f"""You are a microplastics safety analyst. Analyze this product's ingredients and return a JSON risk assessment.
+    prompt = f"""You are a microplastics and synthetic chemical safety analyst. Your job is to estimate what percentage of a product's ingredients are plastic-derived, plastic-adjacent, or known to carry/leach microplastics.
 
 Product: {product_info.get('name', 'Unknown')}
 Brand: {product_info.get('brand', 'Unknown')}
 Ingredients: {product_info.get('ingredients_raw', 'Not available')}
 
+Analyze each ingredient and estimate the overall plastic contamination percentage (0–100%). Consider:
+- Direct plastics: microplastics, polystyrene, PVC, polyethylene
+- Plastic-derived chemicals: BPA, phthalates, PFAS, styrene
+- Synthetic additives often stored/processed in plastic: artificial colors, certain preservatives (BHT, BHA), synthetic emulsifiers
+- Packaging migration risk if ingredients absorb plastics from containers
+
 Return ONLY valid JSON with this exact structure:
 {{
-  "risk_score": <float 0.0-10.0>,
-  "risk_summary": "<one sentence for free tier users>",
-  "risk_detail": "<2-3 paragraphs for premium users explaining plastic chemicals found, exposure risks, and why>",
+  "plastic_percentage": <integer 0-100>,
+  "risk_summary": "<one punchy sentence a consumer would immediately understand, e.g. 'Contains 3 ingredients linked to microplastic contamination'>",
+  "risk_detail": "<2-3 paragraphs for premium users — which specific ingredients, what plastics they carry, what the health research says>",
   "flagged_ingredients": [
-    {{"name": "<ingredient>", "risk": "<low|medium|high>", "reason": "<brief explanation>"}}
+    {{"name": "<ingredient name>", "percentage": <estimated % contribution to plastic score>, "reason": "<one line why>"}}
   ]
 }}
 
-Risk score guide: 0-3 = low risk, 4-6 = moderate, 7-10 = high risk.
-Flag ingredients like: microplastics, BPA, phthalates, PFAS, polystyrene, PVC, artificial dyes with plastic carriers, synthetic preservatives linked to plastics."""
+Be honest and calibrated. Most whole foods score 0-5%. Heavily processed foods with synthetic additives score 15-40%. Products with known plastic chemicals score 40-80%+."""
 
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -78,7 +83,6 @@ Flag ingredients like: microplastics, BPA, phthalates, PFAS, polystyrene, PVC, a
     )
 
     raw = message.content[0].text.strip()
-    # Strip markdown code fences if present
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
@@ -114,7 +118,7 @@ def scan(barcode):
     product.brand = info["brand"]
     product.ingredients_raw = info["ingredients_raw"]
     product.image_url = info["image_url"]
-    product.risk_score = scored["risk_score"]
+    product.plastic_percentage = scored["plastic_percentage"]
     product.risk_summary = scored["risk_summary"]
     product.risk_detail = scored["risk_detail"]
     product.flagged_ingredients = scored["flagged_ingredients"]
