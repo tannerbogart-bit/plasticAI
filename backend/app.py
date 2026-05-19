@@ -18,7 +18,7 @@ def create_app():
     app.config["SESSION_COOKIE_SECURE"] = os.getenv("FLASK_ENV") == "production"
 
     db.init_app(app)
-    migrate.init_app(app, db)
+    migrate.init_app(app, db, render_as_batch=True)
 
     from routes.scan import scan_bp
     from routes.auth import auth_bp

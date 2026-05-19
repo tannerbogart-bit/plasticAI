@@ -12,9 +12,10 @@ class Product(db.Model):
     ingredients_raw = db.Column(db.Text)
     image_url = db.Column(db.String(512))
     plastic_percentage = db.Column(db.Float)   # 0–100, the hero number shown to users
+    confidence = db.Column(db.String(16))      # high / medium / low
     risk_summary = db.Column(db.Text)          # one-sentence plain-English verdict
     risk_detail = db.Column(db.Text)           # premium: full breakdown
-    flagged_ingredients = db.Column(db.JSON)   # list of {name, percentage, reason}
+    flagged_ingredients = db.Column(db.JSON)   # list of {name, percentage, reason, source, verified}
     cached_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self, premium=False):
@@ -24,6 +25,7 @@ class Product(db.Model):
             "brand": self.brand,
             "image_url": self.image_url,
             "plastic_percentage": self.plastic_percentage,
+            "confidence": self.confidence,
             "risk_summary": self.risk_summary,
             "flagged_ingredients": (self.flagged_ingredients or [])[:3],  # top 3 free
         }
