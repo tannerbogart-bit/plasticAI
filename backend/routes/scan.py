@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from extensions import db
 from models import Product, Scan
 from plastic_chemicals import get_reference_block, match_ingredients
@@ -144,6 +144,10 @@ def scan(barcode):
     # Serve from cache if fresh
     product = Product.query.filter_by(barcode=barcode).first()
     if product and product.cached_at > datetime.utcnow() - timedelta(days=CACHE_TTL_DAYS):
+        user_id = session.get("user_id")
+        if user_id:
+            db.session.add(Scan(user_id=user_id, product_id=product.id))
+            db.session.commit()
         premium = request.args.get("premium") == "true"
         return jsonify({"status": "ok", "product": product.to_dict(premium=premium)})
 
@@ -175,6 +179,12 @@ def scan(barcode):
     product.cached_at = datetime.utcnow()
 
     db.session.commit()
+
+    # Record scan in history for logged-in users
+    user_id = session.get("user_id")
+    if user_id:
+        db.session.add(Scan(user_id=user_id, product_id=product.id))
+        db.session.commit()
 
     premium = request.args.get("premium") == "true"
     return jsonify({"status": "ok", "product": product.to_dict(premium=premium)})

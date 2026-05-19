@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from extensions import db
-from models import User
+from models import User, Scan, Product
 import hashlib
 import os
 
@@ -59,3 +59,34 @@ def me():
     if not user:
         return jsonify({"user": None})
     return jsonify({"user": {"id": user.id, "email": user.email, "is_premium": user.is_premium}})
+
+
+@auth_bp.route("/history")
+def history():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
+
+    rows = (
+        db.session.query(Scan, Product)
+        .join(Product, Scan.product_id == Product.id)
+        .filter(Scan.user_id == user_id)
+        .order_by(Scan.scanned_at.desc())
+        .limit(100)
+        .all()
+    )
+
+    scans = [
+        {
+            "scan_id": scan.id,
+            "scanned_at": scan.scanned_at.isoformat(),
+            "barcode": product.barcode,
+            "name": product.name,
+            "brand": product.brand,
+            "image_url": product.image_url,
+            "plastic_percentage": product.plastic_percentage,
+            "risk_summary": product.risk_summary,
+        }
+        for scan, product in rows
+    ]
+    return jsonify({"scans": scans})

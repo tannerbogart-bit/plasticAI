@@ -29,3 +29,8 @@ export async function getMe() {
   const res = await fetch(`${BASE}/auth/me`, { credentials: "include" });
   return res.json();
 }
+
+export async function getHistory() {
+  const res = await fetch(`${BASE}/auth/history`, { credentials: "include" });
+  return res.json();
+}

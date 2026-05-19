@@ -1,21 +1,28 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { scanBarcode } from "../api";
+import { useAuth } from "../context/AuthContext";
 import styles from "./Result.module.css";
 
 function verdictFor(pct) {
-  if (pct <= 5)  return { label: "Clean",    color: "#22c55e", bg: "rgba(34,197,94,0.12)" };
-  if (pct <= 20) return { label: "Low",      color: "#84cc16", bg: "rgba(132,204,22,0.12)" };
-  if (pct <= 40) return { label: "Moderate", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" };
-  if (pct <= 65) return { label: "High",     color: "#f97316", bg: "rgba(249,115,22,0.12)" };
-  return         { label: "Very High",       color: "#ef4444", bg: "rgba(239,68,68,0.12)" };
+  if (pct <= 5)  return { label: "Clean",     color: "#22c55e", bg: "rgba(34,197,94,0.12)" };
+  if (pct <= 20) return { label: "Low",       color: "#84cc16", bg: "rgba(132,204,22,0.12)" };
+  if (pct <= 40) return { label: "Moderate",  color: "#f59e0b", bg: "rgba(245,158,11,0.12)" };
+  if (pct <= 65) return { label: "High",      color: "#f97316", bg: "rgba(249,115,22,0.12)" };
+  return         { label: "Very High",        color: "#ef4444", bg: "rgba(239,68,68,0.12)" };
 }
 
-// SVG ring gauge — draws an arc proportional to pct
 function Gauge({ pct, color }) {
+  const [display, setDisplay] = useState(0);
   const r = 54;
   const circ = 2 * Math.PI * r;
-  const dash = (pct / 100) * circ;
+  const dash = (display / 100) * circ;
+
+  // Animate 0 → pct after mount
+  useEffect(() => {
+    const t = setTimeout(() => setDisplay(pct), 80);
+    return () => clearTimeout(t);
+  }, [pct]);
 
   return (
     <svg className={styles.gaugeSvg} viewBox="0 0 120 120">
@@ -26,7 +33,7 @@ function Gauge({ pct, color }) {
         strokeDasharray={`${dash} ${circ}`}
         strokeLinecap="round"
         transform="rotate(-90 60 60)"
-        style={{ transition: "stroke-dasharray 0.8s cubic-bezier(.4,0,.2,1)" }}
+        style={{ transition: "stroke-dasharray 0.9s cubic-bezier(.4,0,.2,1)" }}
       />
       <text x="60" y="54" textAnchor="middle" fill="#fff" fontSize="22" fontWeight="800">{pct}%</text>
       <text x="60" y="72" textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="9">plastic</text>
@@ -34,14 +41,34 @@ function Gauge({ pct, color }) {
   );
 }
 
+function Skeleton() {
+  return (
+    <div className={styles.page}>
+      <div className={styles.topBar}>
+        <div className={`${styles.skelBtn} ${styles.shimmer}`} />
+        <span className={styles.topLogo}>ClearScan</span>
+        <div className={`${styles.skelBtn} ${styles.shimmer}`} />
+      </div>
+      <div className={`${styles.skelHero} ${styles.shimmer}`} />
+      <div className={styles.skelBody}>
+        <div className={`${styles.skelLine} ${styles.shimmer}`} style={{ width: "80%" }} />
+        <div className={`${styles.skelLine} ${styles.shimmer}`} style={{ width: "60%" }} />
+        <div className={`${styles.skelCard} ${styles.shimmer}`} />
+        <div className={`${styles.skelCard} ${styles.shimmer}`} />
+      </div>
+    </div>
+  );
+}
+
 export default function Result() {
   const { barcode } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [phase, setPhase] = useState("loading");
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
-    scanBarcode(barcode).then((data) => {
+    scanBarcode(barcode, user?.is_premium).then((data) => {
       if (data.status === "ok") {
         setProduct(data.product);
         setPhase("ok");
@@ -49,22 +76,15 @@ export default function Result() {
         setPhase(data.status === "not_found" ? "not_found" : "error");
       }
     }).catch(() => setPhase("error"));
-  }, [barcode]);
+  }, [barcode, user]);
 
-  if (phase === "loading") {
-    return (
-      <div className={styles.splash}>
-        <div className={styles.spinner} />
-        <p className={styles.splashText}>Analyzing product…</p>
-      </div>
-    );
-  }
+  if (phase === "loading") return <Skeleton />;
 
   if (phase !== "ok") {
     return (
       <div className={styles.splash}>
         <p className={styles.splashText}>
-          {phase === "not_found" ? "Product not found in database." : "Something went wrong."}
+          {phase === "not_found" ? "Product not found." : "Something went wrong."}
         </p>
         <button className={styles.outlineBtn} onClick={() => navigate("/")}>Try another</button>
       </div>
@@ -74,12 +94,17 @@ export default function Result() {
   const pct = Math.round(product.plastic_percentage ?? 0);
   const verdict = verdictFor(pct);
   const flagged = product.flagged_ingredients || [];
+  const isPremium = user?.is_premium;
 
   return (
     <div className={styles.page}>
-      {/* Back button row — safe-area aware */}
-      <div className={styles.backRow}>
-        <button className={styles.backBtn} onClick={() => navigate("/")}>← Scan another</button>
+      {/* Sticky top nav */}
+      <div className={styles.topBar}>
+        <button className={styles.navBtn} onClick={() => navigate("/")}>← Back</button>
+        <span className={styles.topLogo}>ClearScan</span>
+        <button className={styles.navBtn} onClick={() => navigate(user ? "/history" : "/auth")}>
+          {user ? "History" : "Sign in"}
+        </button>
       </div>
 
       {/* Hero */}
@@ -111,7 +136,11 @@ export default function Result() {
           <ul className={styles.flagList}>
             {flagged.map((f, i) => (
               <li key={i} className={styles.flagItem}>
-                <span className={styles.flagName}>{f.name}</span>
+                <div className={styles.flagHeader}>
+                  <span className={styles.flagName}>{f.name}</span>
+                  {f.verified && <span className={styles.verified}>✓ verified</span>}
+                  {f.source && <span className={styles.sourceTag} data-src={f.source}>{f.source}</span>}
+                </div>
                 <span className={styles.flagReason}>{f.reason}</span>
               </li>
             ))}
@@ -119,16 +148,18 @@ export default function Result() {
         </div>
       )}
 
-      {/* Premium upsell */}
-      <div className={styles.upsell}>
-        <p className={styles.upsellTitle}>See the full breakdown</p>
-        <p className={styles.upsellSub}>
-          Detailed ingredient analysis, lower-plastic alternatives, and weekly exposure tracking.
-        </p>
-        <button className={styles.upgradeBtn}>
-          Get Premium — $4.99/mo
-        </button>
-      </div>
+      {/* Premium upsell — hidden if already premium */}
+      {!isPremium && (
+        <div className={styles.upsell}>
+          <p className={styles.upsellTitle}>See the full breakdown</p>
+          <p className={styles.upsellSub}>
+            Detailed ingredient analysis, lower-plastic alternatives, and weekly exposure tracking.
+          </p>
+          <button className={styles.upgradeBtn} onClick={() => navigate("/auth")}>
+            Get Premium — $4.99/mo
+          </button>
+        </div>
+      )}
 
       <button className={styles.scanAgain} onClick={() => navigate("/")}>
         Scan another product
