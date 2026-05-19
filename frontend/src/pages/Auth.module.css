@@ -1,0 +1,148 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 20px 16px 40px;
+  background: var(--bg);
+}
+
+.back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 4px 0;
+  margin-bottom: 32px;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 28px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-align: center;
+  letter-spacing: -0.3px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 9px;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab.active {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+/* ── Form ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input {
+  background: var(--bg);
+  border: 1px solid var(--surface2);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1rem;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.error {
+  font-size: 0.85rem;
+  color: #ef4444;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+}
+
+.submit {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 14px;
+  margin-top: 4px;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+}
+
+.submit:not(:disabled):hover {
+  background: var(--accent2);
+}
+
+.sub {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Premium note ── */
+.premiumNote {
+  margin-top: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}

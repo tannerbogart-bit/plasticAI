@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from extensions import db
 from models import Product, Scan
+from plastic_chemicals import get_reference_block
 from datetime import datetime, timedelta
 import requests
 import anthropic
@@ -52,17 +53,17 @@ def fetch_from_upc_itemdb(barcode):
 def score_with_claude(product_info):
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
+    reference = get_reference_block()
     prompt = f"""You are a microplastics and synthetic chemical safety analyst. Your job is to estimate what percentage of a product's ingredients are plastic-derived, plastic-adjacent, or known to carry/leach microplastics.
 
 Product: {product_info.get('name', 'Unknown')}
 Brand: {product_info.get('brand', 'Unknown')}
 Ingredients: {product_info.get('ingredients_raw', 'Not available')}
 
-Analyze each ingredient and estimate the overall plastic contamination percentage (0–100%). Consider:
-- Direct plastics: microplastics, polystyrene, PVC, polyethylene
-- Plastic-derived chemicals: BPA, phthalates, PFAS, styrene
-- Synthetic additives often stored/processed in plastic: artificial colors, certain preservatives (BHT, BHA), synthetic emulsifiers
-- Packaging migration risk if ingredients absorb plastics from containers
+REFERENCE — known plastic-linked chemicals (use these to ground your analysis):
+{reference}
+
+Analyze each ingredient against this reference and estimate the overall plastic contamination percentage (0–100%). Also flag any other plastic-linked ingredients you know from research not in the list above.
 
 Return ONLY valid JSON with this exact structure:
 {{

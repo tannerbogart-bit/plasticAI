@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BrowserMultiFormatReader } from "@zxing/library";
+import { useAuth } from "../context/AuthContext";
 import styles from "./Scanner.module.css";
 
 export default function Scanner() {
   const videoRef = useRef(null);
   const readerRef = useRef(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [status, setStatus] = useState("starting"); // starting | ready | denied
   const [manualBarcode, setManualBarcode] = useState("");
   const [showManual, setShowManual] = useState(false);
@@ -44,6 +46,9 @@ export default function Scanner() {
       <div className={styles.ui}>
         <div className={styles.topBar}>
           <span className={styles.logo}>ClearScan</span>
+          <button className={styles.authBtn} onClick={() => navigate("/auth")}>
+            {user ? (user.is_premium ? "★ Premium" : "Sign in") : "Sign in"}
+          </button>
         </div>
 
         <div className={styles.middle}>
